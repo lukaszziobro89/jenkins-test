@@ -1,0 +1,31 @@
+$BASENAME=(Get-Item $PSCommandPath ).Name
+
+function logInfo([String] $message){
+    Write-Host -NoNewLine "[$(get-date -f yyyy-MM-dd) $(get-date -f HH:mm:ss.fff)]".PadRight(26, ' ') "[INFO]".PadRight(10, ' ') "[$BASENAME]".PadRight(10, ' ')
+    Write-Host " $message"
+}
+
+function logDebug([String] $message){
+    Write-Host -NoNewLine "[$(get-date -f yyyy-MM-dd) $(get-date -f HH:mm:ss.fff)]".PadRight(26, ' ') "[DEBUG]".PadRight(10, ' ') "[$BASENAME]".PadRight(10, ' ')
+    Write-Host " $message"
+}
+
+function logWarning([String] $message){
+    Write-Host -NoNewLine "[$(get-date -f yyyy-MM-dd) $(get-date -f HH:mm:ss.fff)]".PadRight(26, ' ') "[WARNING]".PadRight(10, ' ') "[$BASENAME]".PadRight(10, ' ')
+    Write-Host " $message"
+}
+
+function logTrace([String] $message){
+    Write-Host -NoNewLine "[$(get-date -f yyyy-MM-dd) $(get-date -f HH:mm:ss.fff)]".PadRight(26, ' ') "[TRACE]".PadRight(10, ' ') "[$BASENAME]".PadRight(10, ' ')
+    Write-Host " $message"
+}
+
+#powershell -File .\ctmDefaultFileWatcherProcessor.ps1 
+logInfo "ABC"
+exit 7
+
+#logDebug "Command exit status: $LASTEXITCODE"
+#Write-Warning "some warning"
+#Write-Debug "some debug"
+#Write-Output "some output"
+#Write-Error "some error"
