@@ -1,8 +1,104 @@
-some text
-new line
-another line
-line
-aaa
-ccc
-ddd
-eee
+param (
+    [string]$action,
+    [switch]$bulk
+)
+
+$BASENAME=(Get-Item $PSCommandPath ).Name
+
+function logInfo([String] $message){
+    Write-Host -NoNewLine "[$(get-date -f yyyy-MM-dd) $(get-date -f HH:mm:ss.fff)]".PadRight(26, ' ') "[INFO]".PadRight(10, ' ') "[$BASENAME]".PadRight(10, ' ')
+    Write-Host " $message"
+}
+
+function logDebug([String] $message){
+    Write-Host -NoNewLine "[$(get-date -f yyyy-MM-dd) $(get-date -f HH:mm:ss.fff)]".PadRight(26, ' ') "[DEBUG]".PadRight(10, ' ') "[$BASENAME]".PadRight(10, ' ')
+    Write-Host " $message"
+}
+
+function logWarning([String] $message){
+    Write-Host -NoNewLine "[$(get-date -f yyyy-MM-dd) $(get-date -f HH:mm:ss.fff)]".PadRight(26, ' ') "[WARNING]".PadRight(10, ' ') "[$BASENAME]".PadRight(10, ' ')
+    Write-Host " $message"
+}
+
+function logTrace([String] $message){
+    Write-Host -NoNewLine "[$(get-date -f yyyy-MM-dd) $(get-date -f HH:mm:ss.fff)]".PadRight(26, ' ') "[TRACE]".PadRight(10, ' ') "[$BASENAME]".PadRight(10, ' ')
+    Write-Host " $message"
+}
+
+function logError([String] $message){
+    Write-Host -NoNewLine "[$(get-date -f yyyy-MM-dd) $(get-date -f HH:mm:ss.fff)]".PadRight(26, ' ') "[ERROR]".PadRight(10, ' ') "[$BASENAME]".PadRight(10, ' ')
+    Write-Host "$message"
+}
+
+
+function throwError(){
+    logError " $args"
+    Write-Error -Message " $args"
+    exit 1
+}
+
+function usage(){
+    echo "$BASENAME [-s]
+    <cesd_environment> <ctm_original_scheduling_date> <ctm_current_date> <ctm_previous_date> [<script_to_execute_on_trigger_file(s)>]"
+exit 1
+}
+
+
+if ($bulk){
+    logDebug "set as bulk processing"
+}else {
+    logDebug "set as separate file processing"
+}
+
+
+if ($action){
+    logTrace "action: $action"
+    logInfo "Checking if action '$action' exists"
+
+    if (-Not(Test-Path $action -PathType Leaf)){
+        throwError "Action $action does not exist"
+    }
+    
+    $actionType=[IO.Path]::GetExtension($action)
+    logTrace "Action type: $actionType"
+    
+    if ($actionType -ne ".ps1"){
+        throwError "$action is not valid Powershell script"
+    }
+}else {
+    logInfo "action: DEFAULT ACTION"
+    $action = echo "DEFAULT ACTION"
+}
+
+#usage
+
+
+$path= "C:\Users\luq\Desktop\pshell\files"
+
+$triggerFiles=Get-ChildItem -Path $path -Filter "*.trg" -Name
+
+
+if (-not($bulk)){
+echo "NOT BULK"
+    foreach ($tf in $triggerFiles) {
+	    echo "trigger file '$tf' detected"
+        echo "res: $?"
+        logDebug "executing command: $action $tf"
+        powershell -File $action $tf
+        logInfo "EXIT STATUS: $LASTEXITCODE"
+        logInfo "Removing trigger file $path\$tf"
+        Remove-Item -Verbose "$path\$tf"
+    }    
+
+}else{
+    logDebug "executing command: $action $triggerFiles"
+    powershell -File $action $triggerFiles
+    logInfo "Removing trigger files $triggerFiles"
+    foreach ($tf in $triggerFiles) {
+        Remove-Item -Verbose "$path\$tf"
+    }
+}
+
+
+#powershell -File "C:\Users\luq\Desktop\pshell\wrapper.ps1" -bulk -action 
+logInfo "END"
